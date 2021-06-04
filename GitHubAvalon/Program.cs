@@ -17,6 +17,29 @@ namespace GitHubAvalon
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
+                .With(new SkiaOptions
+                {
+                    MaxGpuResourceSizeBytes = 8096000
+                })
+                .With(new Win32PlatformOptions
+                {
+                    UseWindowsUIComposition = true,
+                    EnableMultitouch = true
+                })
+                .With(new MacOSPlatformOptions
+                {
+                    ShowInDock = true
+                })
+                .With(new X11PlatformOptions
+                {
+                    EnableIme = true,
+                    EnableMultiTouch = true,
+                    UseGpu = true
+                })
+                .With(new AvaloniaNativePlatformOptions
+                {
+                    UseGpu = true
+                })
                 .LogToTrace();
     }
 }

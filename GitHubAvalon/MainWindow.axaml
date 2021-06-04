@@ -2,18 +2,49 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="using:GitHubAvalon.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="GitHubAvalon.MainWindow"
-        Title="GitHub Avalon">
-	<Grid>
-		<SplitView DisplayMode="CompactOverlay">
-			<SplitView.Pane>
-				<StackPanel>
-					<Button Content="hello" />
-					<Button Content="hello" />
-					<Button Content="hello" />
-				</StackPanel>
-			</SplitView.Pane>
-		</SplitView>
-	</Grid>
+        Title="GitHub Avalon"
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        PointerPressed="Window_PointerPressed"
+        x:DataType="viewModels:MainWindowViewModel">
+    <Grid ColumnDefinitions="240,*">
+        <Panel Grid.Column="0">
+            <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial
+                        BackgroundSource="Digger"
+                        TintColor="Black"
+                        TintOpacity="1"
+                        MaterialOpacity="0.6" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
+            <StackPanel>
+                <TextBlock Margin="0,28,0,0" HorizontalAlignment="Center" FontSize="18" Text="GitHub Avalon" Foreground="{DynamicResource SystemBaseMediumColor}" />
+                <TabControl Classes="sidebar" Items="{CompiledBinding NavList}" SelectedItem="{CompiledBinding Item, Mode=TwoWay}">
+                    <TabControl.ItemTemplate>
+                        <DataTemplate x:DataType="viewModels:NavItem">
+                            <TextBlock Text="{CompiledBinding Name}" />
+                        </DataTemplate>
+                    </TabControl.ItemTemplate>
+                </TabControl>
+            </StackPanel>
+        </Panel>
+        <Panel Grid.Column="1">
+            <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial
+                        BackgroundSource="Digger"
+                        TintColor="Black"
+                        TintOpacity="1"
+                        MaterialOpacity="0.9" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
+            <Border Margin="16,24" Child="{CompiledBinding Item.Content}" />
+        </Panel>
+    </Grid>
 </Window>

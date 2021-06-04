@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="using:GitHubAvalon.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GitHubAvalon.Views.Home"
+             x:DataType="viewModels:HomeViewModel">
+    <Grid Margin="8" ColumnDefinitions="*,240">
+        <Grid Grid.Column="0" RowDefinitions="Auto,*">
+            <TextBlock FontSize="16" Text="Activity" Margin="0,0,0,16" Grid.Row="0" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" ScrollChanged="Activity_ScrollChanged">
+                <ItemsRepeater Items="{CompiledBinding Activities, Mode=OneWay}">
+                    <ItemsRepeater.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ItemsRepeater.Styles>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,12,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Grid.Column="0" Width="36" Height="36" VerticalAlignment="Top" Margin="0,0,8,0">
+                                    <Ellipse.Fill>
+                                        <ImageBrush Source="{CompiledBinding Avatar}" />
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <StackPanel Grid.Column="1">
+                                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock FontSize="14" Margin="0,0,8,0" FontWeight="Bold" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Title}" />
+                                        <TextBlock FontSize="10" VerticalAlignment="Bottom" Text="{CompiledBinding Date}" Foreground="{DynamicResource SystemBaseMediumColor}" />
+                                    </WrapPanel>
+                                    <TextBlock Margin="0,0,0,4" FontSize="12" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Description}"></TextBlock>
+                                    <TextBlock Margin="0,0,0,4" FontSize="10" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Meta}" Foreground="{DynamicResource SystemBaseMediumColor}"></TextBlock>
+                                    <TextBlock FontSize="10" Cursor="Hand" Text="{CompiledBinding ShowMoreText}" IsVisible="{CompiledBinding HasGroupedEntries}" Tag="{CompiledBinding}" PointerReleased="ShowMore_PointerReleased" Foreground="{DynamicResource SystemBaseMediumColor}" />
+                                </StackPanel>
+                                <Button Grid.Column="2" HorizontalAlignment="Right" IsVisible="{CompiledBinding HasAction}" Content="{CompiledBinding Action}" Tag="{CompiledBinding}" Click="Star_Clicked" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+        </Grid>
+
+        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+            <TextBlock FontSize="16" Text="Explore repositories" Margin="0,0,0,8" />
+            <ItemsRepeater>
+            </ItemsRepeater>
+        </StackPanel>
+    </Grid>
+</UserControl>
