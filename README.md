@@ -3,6 +3,8 @@ A cross-platform, brand-new and beautiful GitHub Desktop Client.
 
 Powered by Avalonia.
 
+![Home](Assets/Home.png)
+
 ## Quick start
 Set your personal access token in `config.json` and then you're ready to go!
 
