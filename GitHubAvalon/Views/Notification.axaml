@@ -8,7 +8,7 @@
              x:DataType="viewModels:NotificationViewModel">
     <Grid RowDefinitions="Auto, *">
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
-            <TextBlock Grid.Column="0" FontSize="16" Text="Activity" Margin="0,0,0,16" Grid.Row="0" />
+            <TextBlock Grid.Column="0" FontSize="16" Text="Notifications" Margin="0,0,0,16" Grid.Row="0" />
             <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
                 <TextBlock Margin="0,0,16,0" Text="Filter" VerticalAlignment="Center" />
                 <ComboBox Width="150" SelectedIndex="0">
@@ -30,7 +30,7 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:NotificationItem">
                         <StackPanel>
-                            <TextBlock FontSize="14" FontWeight="Bold" Text="{CompiledBinding Notification.Subject.Title}" />
+                            <TextBlock FontSize="14" FontWeight="Bold" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Notification.Subject.Title}" />
                         </StackPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
