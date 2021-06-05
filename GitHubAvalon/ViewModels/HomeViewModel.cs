@@ -1,25 +1,45 @@
 ﻿using Avalonia;
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Threading;
 using GitHubAvalon.Utils;
 using Octokit;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GitHubAvalon.ViewModels
 {
-    public class ActivityItem : INotifyPropertyChanged
+    public class RepositoryItem : INotifyPropertyChanged
+    {
+        public RepositoryItem(Repository repo)
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(repo.Language))
+            {
+                sb.Append(repo.Language);
+                sb.Append(". ");
+            }
+            sb.AppendFormat("Stars: {0}. Forks {1}.", repo.StargazersCount, repo.ForksCount);
+
+            Meta = sb.ToString();
+            Repo = repo;
+        }
+
+        public Repository Repo { get; }
+        public string Meta { get; }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new(propertyName));
+    }
+
+    public enum ActionType { None, Star, Follow }
+    public class ActivityItem : INotifyPropertyChanged, IDisposable
     {
         private bool loading;
+        private bool disposed;
         private IBitmap? avatar;
         private string? description;
         private string? meta;
@@ -27,25 +47,25 @@ namespace GitHubAvalon.ViewModels
         private string? action;
         private readonly static Bitmap emptyBitmap = new WriteableBitmap(new PixelSize(36, 36), Vector.One, PixelFormat.Bgra8888, AlphaFormat.Premul);
 
-        private ActivityItem(Activity activity, string middleText, string actionName)
+        private ActivityItem(Activity activity, string eventAction)
         {
             Activity = activity;
-            Title = Activity.Actor.Login + " " + middleText + " " + Activity.Repo.Name;
+            EventAction = eventAction;
             Description = Activity.Repo.Description;
             Date = activity.CreatedAt.ToString("g");
-            Action = actionName;
         }
 
         public static ActivityItem? Create(Activity activity)
         {
-            var action = GetAction(activity.Payload);
-            if (string.IsNullOrEmpty(action.MiddleText)) return null;
+            var (middle, _) = GetAction(activity.Payload);
+            if (string.IsNullOrEmpty(middle)) return null;
 
-            return new ActivityItem(activity, action.MiddleText, action.ActionName);
+            return new ActivityItem(activity, middle);
         }
 
-        public Activity Activity { get; private set; }
-        public string Title { get; private set; }
+        public Activity Activity { get; }
+        public Repository? Repository { get; private set; }
+        public string EventAction { get; }
         public string Description
         {
             get
@@ -108,9 +128,14 @@ namespace GitHubAvalon.ViewModels
             {
                 action = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsStarAction));
+                OnPropertyChanged(nameof(Starred));
+                OnPropertyChanged(nameof(HasAction));
             }
         }
         public bool HasAction => !string.IsNullOrEmpty(Action);
+        public bool IsStarAction => Action is "Star" or "Unstar";
+        public bool Starred => Action is "Unstar";
         public bool HasGroupedEntries => GroupedEntries.Length != 0;
         public string ShowMoreText => $"Expand {GroupedEntries.Length} more {(GroupedEntries.Length == 1 ? "activity" : "activities")}...";
         public Activity[] GroupedEntries
@@ -123,16 +148,24 @@ namespace GitHubAvalon.ViewModels
                 OnPropertyChanged(nameof(ShowMoreText));
             }
         }
-        private static (string MiddleText, string ActionName) GetAction(ActivityPayload type) => type switch
+        private static (string MiddleText, ActionType Type) GetAction(ActivityPayload type) => type switch
         {
-            CreateEventPayload create when create.Ref == create.MasterBranch => ("created a repository", "Star"),
-            ForkEventPayload fork => ("forked", "Star"),
-            ReleaseEventPayload release => ($"released {release.Release.Name} in", "Star"),
-            IssueEventPayload issue => ("created an issue in", "Star"),
-            PushEventPayload push => ("pushed to", "Star"),
-            PullRequestEventPayload pull => ("created a pull request to", "Star"),
-            StarredEventPayload star => ("starred", "Star"),
-            _ => ("", "")
+            CreateEventPayload create when create.Ref == create.MasterBranch => ("created a repository", ActionType.Star),
+            ForkEventPayload fork => ("forked", ActionType.Star),
+            ReleaseEventPayload release => ($"{release.Action} a release {release.Release.Name} in", ActionType.Star),
+            IssueEventPayload issue => ($"{issue.Action} an issue in", ActionType.Star),
+            PushEventPayload push => ($"pushed {push.Commits.Count} {(push.Commits.Count == 1 ? "commit" : "commits")} to", ActionType.None),
+            PullRequestEventPayload pull => ($"{pull.Action} a pull request in", ActionType.Star),
+            StarredEventPayload star => ("starred", ActionType.Star),
+            _ => ("", ActionType.None)
+        };
+
+        private async Task<string> GetDescriptionAsync(IGitHubClient client, Repository repo) => Activity.Payload switch
+        {
+            IssueEventPayload issue => (await client.Issue.Get(repo.Id, issue.Issue.Number)).Title,
+            PullRequestEventPayload pull => (await client.PullRequest.Get(repo.Id, pull.PullRequest.Number)).Title,
+            ReleaseEventPayload release => (await client.Repository.Release.Get(repo.Id, release.Release.Id)).Body,
+            _ => repo.Description
         };
 
         private async Task GetDelayedInfoAsync()
@@ -140,27 +173,50 @@ namespace GitHubAvalon.ViewModels
             var (client, _) = await App.Model.GetModelAsync();
             var avatarData = await client.Connection.GetRaw(new Uri(Activity.Actor.AvatarUrl), null);
             using var stream = new MemoryStream(avatarData.Body);
-            var repo = await client.Repository.Get(Activity.Repo.Id);
+            Repository = await client.Repository.Get(Activity.Repo.Id);
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(repo.Language))
+            if (!string.IsNullOrEmpty(Repository.Language))
             {
-                sb.Append(repo.Language);
+                sb.Append(Repository.Language);
                 sb.Append(". ");
             }
-            sb.AppendFormat("Stars: {0}. Updated at {1}.", repo.StargazersCount, repo.UpdatedAt.ToString("g"));
+            sb.AppendFormat("Stars: {0}. Updated at {1}.", Repository.StargazersCount, Repository.UpdatedAt.ToString("g"));
+
+            var (_, action) = GetAction(Activity.Payload);
 
             Avatar = new Bitmap(stream);
-            Description = repo.Description;
+            Description = await GetDescriptionAsync(client, Repository);
             Meta = sb.ToString();
+            Action = action switch
+            {
+                ActionType.Star => await client.Activity.Starring.CheckStarred(Repository.Owner.Login, Repository.Name) ? "Unstar" : "Star",
+                _ => ""
+            };
 
             loading = false;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new(propertyName));
+
+        ~ActivityItem()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                Avatar?.Dispose();
+                GC.SuppressFinalize(this);
+            }
+        }
     }
     public class HomeViewModel
     {
         public BulkObservableCollection<ActivityItem> Activities { get; } = new();
+        public BulkObservableCollection<RepositoryItem> TrendingRepos { get; } = new();
     }
 }

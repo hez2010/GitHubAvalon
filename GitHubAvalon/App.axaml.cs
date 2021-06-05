@@ -1,15 +1,12 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Styling;
 using GitHubAvalon.Models;
 using System;
 using System.IO;
-using System.Text.Json;
 using System.Text.Json.Node;
-using System.Threading.Tasks;
 
 namespace GitHubAvalon
 {

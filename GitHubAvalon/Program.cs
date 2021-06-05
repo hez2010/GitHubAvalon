@@ -1,7 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using System;
 
 namespace GitHubAvalon
 {
@@ -23,6 +20,7 @@ namespace GitHubAvalon
                 })
                 .With(new Win32PlatformOptions
                 {
+                    AllowEglInitialization = true,
                     UseWindowsUIComposition = true,
                     EnableMultitouch = true
                 })
@@ -33,12 +31,7 @@ namespace GitHubAvalon
                 .With(new X11PlatformOptions
                 {
                     EnableIme = true,
-                    EnableMultiTouch = true,
-                    UseGpu = true
-                })
-                .With(new AvaloniaNativePlatformOptions
-                {
-                    UseGpu = true
+                    EnableMultiTouch = true
                 })
                 .LogToTrace();
     }

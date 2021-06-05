@@ -1,8 +1,14 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:GitHubAvalon.Converters"
              x:Class="GitHubAvalon.App">
     <Application.Styles>
         <FluentTheme Mode="Dark"/>
         <StyleInclude Source="/Styles/Sidebar.axaml" />
     </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <converters:NotConverter x:Key="NotConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

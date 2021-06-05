@@ -1,10 +1,8 @@
-using Avalonia;
-using Avalonia.Controls;
+Ôªøusing Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Threading;
 using GitHubAvalon.ViewModels;
 using Octokit;
 using System;
@@ -18,12 +16,12 @@ namespace GitHubAvalon.Views
     public partial class Home : UserControl
     {
         private bool loaded;
-        private bool allLoaded;
+        private bool allActivitiesLoaded;
         private int page;
-        private readonly SemaphoreSlim loadSemaphore = new(1, 1);
+        private readonly SemaphoreSlim loadActivitySemaphore = new(1, 1);
+        private readonly SemaphoreSlim loadExploreSemaphore = new(1, 1);
         private readonly HomeViewModel viewModel = new();
-        private ActivityItem? lastItem = null;
-        private (int UserId, string ActionType) lastInfo = (default, "");
+        private (int UserId, string ActionType, ActivityItem? Item) lastActivityInfo = (default, "", null);
 
         public Home()
         {
@@ -43,18 +41,48 @@ namespace GitHubAvalon.Views
             {
                 loaded = true;
                 _ = LoadActivityAsync();
+                _ = LoadExploreReposAsync();
+            }
+        }
+
+        private async Task LoadExploreReposAsync()
+        {
+            await loadExploreSemaphore.WaitAsync();
+
+            try
+            {
+                var (client, _) = await App.Model.GetModelAsync();
+                var result = await client.Search.SearchRepo(new SearchRepositoriesRequest
+                {
+                    SortField = RepoSearchSort.Stars,
+                    Order = SortDirection.Descending,
+                    Created = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(7)),
+                    Updated = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(7)),
+                    Archived = false,
+                    PerPage = 30
+                });
+
+                viewModel.TrendingRepos.BeginBulkOperation();
+                foreach (var i in result.Items) viewModel.TrendingRepos.Add(new(i));
+                viewModel.TrendingRepos.EndBulkOperation();
+            }
+            finally
+            {
+                loadExploreSemaphore.Release();
             }
         }
 
         private async Task LoadActivityAsync()
         {
-            if (allLoaded) return;
+            if (allActivitiesLoaded) return;
 
-            await loadSemaphore.WaitAsync();
+            await loadActivitySemaphore.WaitAsync();
 
             try
             {
                 var (client, user) = await App.Model.GetModelAsync();
+                var feeds = await client.Activity.Feeds.GetFeeds();
+                Console.WriteLine(feeds.CurrentUserUrl);
 
                 var events = await client.Activity.Events.GetAllUserReceived(user.Login, new ApiOptions
                 {
@@ -65,39 +93,39 @@ namespace GitHubAvalon.Views
 
                 if (events.Count < 20)
                 {
-                    allLoaded = true;
+                    allActivitiesLoaded = true;
                 }
 
                 viewModel.Activities.BeginBulkOperation();
 
-                var groupedEvents = lastItem is { GroupedEntries: Activity[] lastActivities } ? 
+                var groupedEvents = lastActivityInfo.Item is { GroupedEntries: Activity[] lastActivities } ?
                         lastActivities.ToList() : new List<Activity>();
 
                 foreach (var e in events)
                 {
                     var item = ActivityItem.Create(e);
                     if (item is null) continue;
-                    if (lastInfo.UserId == e.Actor.Id && lastInfo.ActionType == e.Type)
+                    if (lastActivityInfo.UserId == e.Actor.Id && lastActivityInfo.ActionType == e.Type)
                     {
                         groupedEvents.Add(e);
                     }
                     else
                     {
-                        if (groupedEvents.Count != 0 && lastItem is not null)
+                        if (groupedEvents.Count != 0 && lastActivityInfo.Item is not null)
                         {
-                            lastItem.GroupedEntries = groupedEvents.ToArray();
+                            lastActivityInfo.Item.GroupedEntries = groupedEvents.ToArray();
                             groupedEvents.Clear();
                         }
 
-                        viewModel.Activities.Add(lastItem = item);
+                        viewModel.Activities.Add(lastActivityInfo.Item = item);
                     }
-                    lastInfo.UserId = e.Actor.Id;
-                    lastInfo.ActionType = e.Type;
+                    lastActivityInfo.UserId = e.Actor.Id;
+                    lastActivityInfo.ActionType = e.Type;
                 }
 
-                if (groupedEvents.Count != 0 && lastItem is not null)
+                if (groupedEvents.Count != 0 && lastActivityInfo.Item is not null)
                 {
-                    lastItem.GroupedEntries = groupedEvents.ToArray();
+                    lastActivityInfo.Item.GroupedEntries = groupedEvents.ToArray();
                     groupedEvents.Clear();
                 }
 
@@ -105,7 +133,15 @@ namespace GitHubAvalon.Views
             }
             finally
             {
-                loadSemaphore.Release();
+                loadActivitySemaphore.Release();
+            }
+
+            var scrollViewer = this.FindControl<ScrollViewer>("ActivityPanel");
+            if (scrollViewer.Content is not ItemsRepeater repeater) return;
+
+            if (scrollViewer.Offset.Y + scrollViewer.DesiredSize.Height + 50 >= repeater.DesiredSize.Height && loadActivitySemaphore.CurrentCount > 0)
+            {
+                _ = LoadActivityAsync();
             }
         }
 
@@ -114,7 +150,7 @@ namespace GitHubAvalon.Views
             if (sender is not ScrollViewer scrollViewer ||
                 scrollViewer.Content is not ItemsRepeater repeater) return;
 
-            if (scrollViewer.Offset.Y + scrollViewer.DesiredSize.Height + 50 >= repeater.DesiredSize.Height && loadSemaphore.CurrentCount > 0)
+            if (scrollViewer.Offset.Y + scrollViewer.DesiredSize.Height + 50 >= repeater.DesiredSize.Height && loadActivitySemaphore.CurrentCount > 0)
             {
                 _ = LoadActivityAsync();
             }
@@ -141,11 +177,42 @@ namespace GitHubAvalon.Views
             viewModel.Activities.EndBulkOperation();
         }
 
-        private void Star_Clicked(object sender, RoutedEventArgs args)
+        private async void Star_Clicked(object sender, RoutedEventArgs args)
         {
-            if (sender is Button button && button.Tag is ActivityItem item)
+            if (sender is Button button && button.Tag is ActivityItem item && item.Repository is not null)
             {
-                item.Action = "ñvé ";
+                var (client, _) = await App.Model.GetModelAsync();
+                try
+                {
+                    if (item.Starred)
+                    {
+                        await client.Activity.Starring.RemoveStarFromRepo(item.Repository.Owner.Login, item.Repository.Name);
+
+                        foreach (var i in viewModel.Activities)
+                        {
+                            if (i.Action is "Unstar" && i.Repository is not null && i.Repository.Id == item.Repository.Id)
+                            {
+                                i.Action = "Star";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        await client.Activity.Starring.StarRepo(item.Repository.Owner.Login, item.Repository.Name);
+
+                        foreach (var i in viewModel.Activities)
+                        {
+                            if (i.Action is "Star" && i.Repository is not null && i.Repository.Id == item.Repository.Id)
+                            {
+                                i.Action = "Unstar";
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
     }
