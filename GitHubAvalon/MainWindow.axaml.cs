@@ -35,7 +35,7 @@ namespace GitHubAvalon
             viewModel.NavList.Add(new("Notifications", () => null));
             viewModel.NavList.Add(new("Profile", () => null));
             viewModel.NavList.Add(new("Settings", () => null));
-            viewModel.NavList.Add(new("About", () => null));
+            viewModel.NavList.Add(new("About", () => new About()));
         }
 
         private void Window_PointerPressed(object sender, PointerPressedEventArgs args)

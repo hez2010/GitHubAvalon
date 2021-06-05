@@ -57,7 +57,6 @@ namespace GitHubAvalon.Views
                     SortField = RepoSearchSort.Stars,
                     Order = SortDirection.Descending,
                     Created = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(7)),
-                    Updated = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(7)),
                     Archived = false,
                     PerPage = 30
                 });
