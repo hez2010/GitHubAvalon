@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GitHubAvalon.Views.Home"
              x:DataType="viewModels:HomeViewModel">
-    <Grid Margin="8" ColumnDefinitions="*,240">
+    <Grid ColumnDefinitions="*,240">
         <Grid Grid.Column="0" RowDefinitions="Auto,*">
             <TextBlock FontSize="16" Text="Activity" Margin="0,0,0,16" Grid.Row="0" />
             <ScrollViewer Name="ActivityPanel" VerticalScrollBarVisibility="Auto" Grid.Row="1" ScrollChanged="Activity_ScrollChanged">

@@ -44,7 +44,7 @@
                         MaterialOpacity="0.9" />
                 </ExperimentalAcrylicBorder.Material>
             </ExperimentalAcrylicBorder>
-            <Border Margin="16,24" Child="{CompiledBinding Item.Content}" />
+            <Border Margin="24,32" Child="{CompiledBinding Item.Content}" />
         </Panel>
     </Grid>
 </Window>

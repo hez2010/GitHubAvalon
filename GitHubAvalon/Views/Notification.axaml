@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="using:GitHubAvalon.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GitHubAvalon.Views.Notification"
+             x:DataType="viewModels:NotificationViewModel">
+    <Grid RowDefinitions="Auto, *">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" FontSize="16" Text="Activity" Margin="0,0,0,16" Grid.Row="0" />
+            <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                <TextBlock Margin="0,0,16,0" Text="Filter" VerticalAlignment="Center" />
+                <ComboBox Width="150" SelectedIndex="0">
+                    <ComboBoxItem Content="All" />
+                    <ComboBoxItem Content="Unread" />
+                    <ComboBoxItem>
+                        <CheckBox Content="Participated only" />
+                    </ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+        <ScrollViewer Grid.Row="1" ScrollChanged="Notification_ScrollChanged" Name="NotificationPanel">
+            <ItemsRepeater Items="{CompiledBinding FilteredNotifications}">
+                <ItemsRepeater.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ItemsRepeater.Styles>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:NotificationItem">
+                        <StackPanel>
+                            <TextBlock FontSize="14" FontWeight="Bold" Text="{CompiledBinding Notification.Subject.Title}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

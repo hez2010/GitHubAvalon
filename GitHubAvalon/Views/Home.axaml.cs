@@ -2,7 +2,6 @@
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
 using GitHubAvalon.ViewModels;
 using Octokit;
 using System;
@@ -27,22 +26,13 @@ namespace GitHubAvalon.Views
         {
             InitializeComponent();
             DataContext = viewModel;
+            _ = LoadActivityAsync();
+            _ = LoadExploreReposAsync();
         }
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-        }
-
-        public override void Render(DrawingContext context)
-        {
-            base.Render(context);
-            if (!loaded)
-            {
-                loaded = true;
-                _ = LoadActivityAsync();
-                _ = LoadExploreReposAsync();
-            }
         }
 
         private async Task LoadExploreReposAsync()
@@ -90,11 +80,6 @@ namespace GitHubAvalon.Views
                     StartPage = ++page
                 });
 
-                if (events.Count < 20)
-                {
-                    allActivitiesLoaded = true;
-                }
-
                 viewModel.Activities.BeginBulkOperation();
 
                 var groupedEvents = lastActivityInfo.Item is { GroupedEntries: Activity[] lastActivities } ?
@@ -129,18 +114,25 @@ namespace GitHubAvalon.Views
                 }
 
                 viewModel.Activities.EndBulkOperation();
+
+                if (events.Count < 20)
+                {
+                    allActivitiesLoaded = true;
+                }
+                else
+                {
+                    var scrollViewer = this.FindControl<ScrollViewer>("ActivityPanel");
+                    if (scrollViewer.Content is not ItemsRepeater repeater) return;
+
+                    if (scrollViewer.Offset.Y + scrollViewer.DesiredSize.Height + 50 >= repeater.DesiredSize.Height)
+                    {
+                        _ = LoadActivityAsync();
+                    }
+                }
             }
             finally
             {
                 loadActivitySemaphore.Release();
-            }
-
-            var scrollViewer = this.FindControl<ScrollViewer>("ActivityPanel");
-            if (scrollViewer.Content is not ItemsRepeater repeater) return;
-
-            if (scrollViewer.Offset.Y + scrollViewer.DesiredSize.Height + 50 >= repeater.DesiredSize.Height && loadActivitySemaphore.CurrentCount > 0)
-            {
-                _ = LoadActivityAsync();
             }
         }
 

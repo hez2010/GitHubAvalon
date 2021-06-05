@@ -22,7 +22,7 @@ namespace GitHubAvalon.ViewModels
                 sb.Append(repo.Language);
                 sb.Append(". ");
             }
-            sb.AppendFormat("Stars: {0}. Forks {1}.", repo.StargazersCount, repo.ForksCount);
+            sb.AppendFormat("Stars: {0}. Forks: {1}.", repo.StargazersCount, repo.ForksCount);
 
             Meta = sb.ToString();
             Repo = repo;
