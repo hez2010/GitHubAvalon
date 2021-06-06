@@ -1,4 +1,5 @@
-﻿using GitHubAvalon.Utils;
+﻿using Avalonia.Media;
+using GitHubAvalon.Utils;
 using Octokit;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,22 @@ namespace GitHubAvalon.ViewModels
         public NotificationItem(Notification notification)
         {
             Notification = notification;
+
+            var reason = Notification.Reason;
+            if (reason.Length > 0)
+            {
+                reason = char.ToUpper(reason[0]) + reason[1..];
+            }
+
+            Title = Notification.Repository.FullName;
+            Description = Notification.Subject.Title;
+            Meta = reason + ". " + DateTime.Parse(notification.UpdatedAt).ToString("g");
         }
 
         public Notification Notification { get; }
+        public string Title { get; }
+        public string Description { get; }
+        public string Meta { get; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new(propertyName));

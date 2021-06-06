@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="using:GitHubAvalon.ViewModels"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="GitHubAvalon.Views.Notification"
              x:DataType="viewModels:NotificationViewModel">
@@ -30,7 +32,27 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:NotificationItem">
                         <StackPanel>
-                            <TextBlock FontSize="14" FontWeight="Bold" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Notification.Subject.Title}" />
+                            <TextBlock Foreground="{DynamicResource SystemBaseMediumColor}" Cursor="Hand" Margin="0,0,0,4" TextWrapping="WrapWithOverflow" FontSize="14" FontWeight="Bold" Text="{CompiledBinding Title}">
+                                <i:Interaction.Behaviors>
+                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="False">
+                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseMediumColor}" />
+                                    </ia:DataTriggerBehavior>
+                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="True">
+                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseHighColor}" />
+                                    </ia:DataTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </TextBlock>
+                            <TextBlock Foreground="{DynamicResource SystemBaseMediumColor}" Margin="0,0,0,4" FontSize="12" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Description}">
+                                <i:Interaction.Behaviors>
+                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="False">
+                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseMediumColor}" />
+                                    </ia:DataTriggerBehavior>
+                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="True">
+                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseHighColor}" />
+                                    </ia:DataTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,0,8" FontSize="10" Foreground="{DynamicResource SystemBaseMediumColor}" Text="{CompiledBinding Meta}" />
                         </StackPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

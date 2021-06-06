@@ -6,9 +6,4 @@
         <FluentTheme Mode="Dark"/>
         <StyleInclude Source="/Styles/Sidebar.axaml" />
     </Application.Styles>
-    <Application.Resources>
-        <ResourceDictionary>
-            <converters:NotConverter x:Key="NotConverter" />
-        </ResourceDictionary>
-    </Application.Resources>
 </Application>

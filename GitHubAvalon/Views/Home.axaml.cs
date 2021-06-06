@@ -20,6 +20,7 @@ namespace GitHubAvalon.Views
         private readonly SemaphoreSlim loadExploreSemaphore = new(1, 1);
         private readonly HomeViewModel viewModel = new();
         private (int UserId, string ActionType, ActivityItem? Item) lastActivityInfo = (default, "", null);
+        private const int PageSize = 50;
 
         public Home()
         {
@@ -75,7 +76,7 @@ namespace GitHubAvalon.Views
 
                 var events = await client.Activity.Events.GetAllUserReceived(user.Login, new ApiOptions
                 {
-                    PageSize = 20,
+                    PageSize = PageSize,
                     PageCount = 1,
                     StartPage = ++page
                 });
@@ -115,7 +116,7 @@ namespace GitHubAvalon.Views
 
                 viewModel.Activities.EndBulkOperation();
 
-                if (events.Count < 20)
+                if (events.Count < PageSize)
                 {
                     allActivitiesLoaded = true;
                 }

@@ -17,6 +17,7 @@ namespace GitHubAvalon.Views
     {
         private readonly SemaphoreSlim loadSemaphore = new(1, 1);
         private readonly NotificationViewModel viewModel = new();
+        private const int PageSize = 20;
 
         public Notification()
         {
@@ -80,14 +81,14 @@ namespace GitHubAvalon.Views
                     new ApiOptions
                     {
                         PageCount = 1,
-                        PageSize = 20,
+                        PageSize = PageSize,
                         StartPage = ++viewModel.Page
                     });
 
                 viewModel.Notifications.AddRange(notifications.Select(i => new NotificationItem(i)));
                 FilterNotifications();
 
-                if (notifications.Count < 20)
+                if (notifications.Count < PageSize)
                 {
                     viewModel.AllLoaded = true;
                 }
