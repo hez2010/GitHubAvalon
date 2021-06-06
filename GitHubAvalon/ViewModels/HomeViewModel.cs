@@ -214,9 +214,24 @@ namespace GitHubAvalon.ViewModels
             }
         }
     }
-    public class HomeViewModel
+    public class HomeViewModel : INotifyPropertyChanged
     {
+        private int trendingDaysFilter = 1;
+
         public BulkObservableCollection<ActivityItem> Activities { get; } = new();
         public BulkObservableCollection<RepositoryItem> TrendingRepos { get; } = new();
+        public int TrendingDaysFilter
+        {
+            get => trendingDaysFilter;
+            set
+            {
+                trendingDaysFilter = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new(propertyName));
+
     }
 }

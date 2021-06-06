@@ -14,7 +14,6 @@ namespace GitHubAvalon.Views
 {
     public partial class Home : UserControl
     {
-        private bool loaded;
         private bool allActivitiesLoaded;
         private int page;
         private readonly SemaphoreSlim loadActivitySemaphore = new(1, 1);
@@ -27,7 +26,7 @@ namespace GitHubAvalon.Views
             InitializeComponent();
             DataContext = viewModel;
             _ = LoadActivityAsync();
-            _ = LoadExploreReposAsync();
+            _ = LoadTrendingReposAsync(1);
         }
 
         private void InitializeComponent()
@@ -35,9 +34,11 @@ namespace GitHubAvalon.Views
             AvaloniaXamlLoader.Load(this);
         }
 
-        private async Task LoadExploreReposAsync()
+        private async Task LoadTrendingReposAsync(int range)
         {
             await loadExploreSemaphore.WaitAsync();
+
+            viewModel.TrendingRepos.Clear();
 
             try
             {
@@ -46,9 +47,8 @@ namespace GitHubAvalon.Views
                 {
                     SortField = RepoSearchSort.Stars,
                     Order = SortDirection.Descending,
-                    Created = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(7)),
-                    Archived = false,
-                    PerPage = 30
+                    Created = DateRange.GreaterThan(DateTimeOffset.UtcNow - TimeSpan.FromDays(range)),
+                    Archived = false
                 });
 
                 viewModel.TrendingRepos.BeginBulkOperation();
@@ -205,6 +205,13 @@ namespace GitHubAvalon.Views
                     // ignored
                 }
             }
+        }
+
+        private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs args)
+        {
+            if (sender is not ComboBox cb || cb.SelectedItem is not ComboBoxItem si) return;
+
+            _ = LoadTrendingReposAsync(int.Parse(si.Tag?.ToString() ?? "1"));
         }
     }
 }
