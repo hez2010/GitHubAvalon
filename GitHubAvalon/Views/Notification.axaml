@@ -29,7 +29,21 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:NotificationItem">
                         <StackPanel>
-                            <TextBlock Foreground="{DynamicResource SystemBaseMediumColor}" Cursor="Hand" Margin="0,0,0,4" TextWrapping="WrapWithOverflow" FontSize="14" FontWeight="Bold" Text="{CompiledBinding Title}">
+                            <Grid ColumnDefinitions="Auto, Auto" Margin="0,0,0,4">
+                                <TextBlock Grid.Column="0" Foreground="{DynamicResource SystemBaseMediumColor}" Cursor="Hand" TextWrapping="WrapWithOverflow" FontSize="14" FontWeight="Bold" Text="{CompiledBinding Title}">
+                                    <i:Interaction.Behaviors>
+                                        <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="False">
+                                            <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseMediumColor}" />
+                                        </ia:DataTriggerBehavior>
+                                        <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="True">
+                                            <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseHighColor}" />
+                                        </ia:DataTriggerBehavior>
+                                    </i:Interaction.Behaviors>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0" FontSize="10" Foreground="{DynamicResource SystemBaseMediumColor}" Text="{CompiledBinding Meta}" />
+                            </Grid>
+                            
+                            <TextBlock Foreground="{DynamicResource SystemBaseMediumColor}" Margin="0,0,0,16" FontSize="12" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Description}">
                                 <i:Interaction.Behaviors>
                                     <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="False">
                                         <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseMediumColor}" />
@@ -39,17 +53,6 @@
                                     </ia:DataTriggerBehavior>
                                 </i:Interaction.Behaviors>
                             </TextBlock>
-                            <TextBlock Foreground="{DynamicResource SystemBaseMediumColor}" Margin="0,0,0,4" FontSize="12" TextWrapping="WrapWithOverflow" Text="{CompiledBinding Description}">
-                                <i:Interaction.Behaviors>
-                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="False">
-                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseMediumColor}" />
-                                    </ia:DataTriggerBehavior>
-                                    <ia:DataTriggerBehavior Binding="{CompiledBinding Notification.Unread}" ComparisonCondition="Equal" Value="True">
-                                        <ia:ChangePropertyAction PropertyName="Foreground" Value="{DynamicResource SystemBaseHighColor}" />
-                                    </ia:DataTriggerBehavior>
-                                </i:Interaction.Behaviors>
-                            </TextBlock>
-                            <TextBlock Margin="0,0,0,16" FontSize="10" Foreground="{DynamicResource SystemBaseMediumColor}" Text="{CompiledBinding Meta}" />
                         </StackPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
