@@ -6,7 +6,7 @@ using Avalonia.Styling;
 using GitHubAvalon.Models;
 using System;
 using System.IO;
-using System.Text.Json.Node;
+using System.Text.Json.Nodes;
 
 namespace GitHubAvalon
 {

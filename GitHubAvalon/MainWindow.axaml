@@ -10,7 +10,6 @@
         TransparencyLevelHint="AcrylicBlur"
         Background="Transparent"
         ExtendClientAreaToDecorationsHint="True"
-        PointerPressed="Window_PointerPressed"
         x:DataType="viewModels:MainWindowViewModel">
     <Grid ColumnDefinitions="240,*">
         <Panel Grid.Column="0">

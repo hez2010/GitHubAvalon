@@ -37,14 +37,5 @@ namespace GitHubAvalon
             viewModel.NavList.Add(new("Settings", () => null));
             viewModel.NavList.Add(new("About", () => new About()));
         }
-
-        private void Window_PointerPressed(object sender, PointerPressedEventArgs args)
-        {
-            var point = args.GetCurrentPoint(this);
-            if (point.Position.Y <= 20 && point.Pointer.Captured is Border)
-            {
-                BeginMoveDrag(args);
-            }
-        }
     }
 }
